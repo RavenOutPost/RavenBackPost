@@ -1,14 +1,21 @@
 const express = require('express');
+const cors = require('cors');
 const nano = require('nano')('http://127.0.0.1:5984');
 
 const app = express();
-app.use(express.json());
 
+app.use(cors());
+app.use(express.json());
 const db = nano.db.use('users');
 
 app.post('/addUser', async (req, res) => {
   try {
     const user = req.body;
+    console.log(user)
+    if (!user) {
+        return res.status(200).json({message : 'no data'})
+        
+    }
     const response = await db.insert(user);
     res.status(201).json(response);
   } catch (error) {
