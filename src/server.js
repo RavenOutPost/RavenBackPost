@@ -1,13 +1,15 @@
-const express = require('express')
+const express = require('express');
+const cors = require('cors');
+const app = express();
 
-const app = express()
+app.use(cors());
 
-app.use(express.json())
+// app.use(cors({ origin: 'http://ton-site-frontend.com' }));
 
-app.get('/', (req,res) => res.send('Welcome on my API'))
+app.get('/api', (req, res) => {
+  res.json({ message: 'CORS configuré!' });
+});
 
-
-const port = process.env.PORT || 5000
-app.listen(port, () => {
-    console.log(`running on ${port}`)
-})
+app.listen(3000, () => {
+  console.log('API running on http://localhost:3000');
+});
