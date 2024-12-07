@@ -9,6 +9,6 @@ echo "- Installing dependances "
 npm install
 
 echo "- Run API "
-echo "Lancement du script..."
+node src/server.js
 
 echo "=== Processus Ended ==="
