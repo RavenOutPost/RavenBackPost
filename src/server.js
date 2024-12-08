@@ -1,9 +1,16 @@
+
 const express = require('express');
 const cors = require('cors');
-const upload = require('./storage.js')
+const multer = require('multer')
 const nano = require('nano')('http://127.0.0.1:5984');
+const fs = require('fs')
+const {v4 : uuidv4} = require('uuid')
+const path = '../pictures'
 
-
+if (!fs.existsSync(path)) {
+    console.log("path created")
+    fs.mkdirSync(path)
+}
 const app = express();
 const db = nano.db.use('users');
 
@@ -12,53 +19,34 @@ app.get('/', (req, res) => res.status(200).json({message : 'Welcome to this API,
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/'); 
+    cb(null, path); 
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
+    const uuid = uuidv4()
+    req.body.id = uuid;
+    cb(null, uuid);
   }
 });
 
 const upload = multer({ storage: storage });
 
 
-app.post('/addUser' ,upload.fields([
-  { name: 'file', maxCount: 1 }, 
-  { name: 'name', maxCount: 1 }, 
-  { name: 'email', maxCount: 1 },
-]), (req, res) => {
+app.post('/addUser' ,upload.single('file'), async (req, res) => {
   try {
-    console.log('Champs textuels:', req.body.name, req.body.email);
+    console.log(req.files)
+       const user = req.body;
+        if (!user) {
+            return res.status(200).json({message : 'no data'})
+        }
+        const response = await db.insert(user);
 
- 
-  console.log('Fichier téléchargé:', req.files.file);
-
-  res.status(200).json({
-    message: 'Fichier et données textuelles reçus avec succès',
-    file: req.files.file,   
-    name: req.body.name,   
-    email: req.body.email, 
-  })
-}
-catch(e) {
-  res.status(500).json({message : 'error', e})
-}
+        return res.status(200).json({user: user})
+    }
+    catch(e) {
+    return res.status(500).json({message : `error ${e}`})
+    }
 });
-  //   console.log(req.body)
-  //   console.log(req.file)
-  //   const file = req.file;
-  //   const user = req.body;
 
-  //   console.log(user)
-  //   if (!user) {
-  //       return res.status(200).json({message : 'no data'})
-        
-  //   }
-  //   const response = await db.insert(user);
-  //   res.status(201).json(response);
-  // } catch (error) {
-  //   res.status(500).json({ message: 'Erreur lors de l\'ajout de l\'utilisateur', error });
-  // }
 
 app.get('/getUser/:id', async (req, res) => {
   try {
